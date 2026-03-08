@@ -1,4 +1,4 @@
-import { ArrowRight, Search, Handshake, Plane } from "lucide-react";
+import { ArrowRight, Search, Handshake, Plane, PiggyBank, Home, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import SearchBar from "@/components/SearchBar";
