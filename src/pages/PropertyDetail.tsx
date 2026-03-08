@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, MapPin, Bed, Bath, Users, ArrowLeft, Heart, Share2, MessageSquare, CalendarIcon } from "lucide-react";
+import { Star, MapPin, Bed, Bath, Users, ArrowLeft, Heart, Share2, MessageSquare, CalendarIcon, Send } from "lucide-react";
 import { format, eachDayOfInterval, isWithinInterval, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
