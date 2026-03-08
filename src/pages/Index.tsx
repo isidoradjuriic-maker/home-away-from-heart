@@ -1,4 +1,4 @@
-import { ArrowRight, Search, Handshake, Plane } from "lucide-react";
+import { ArrowRight, Search, Handshake, Plane, PiggyBank, Home, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import SearchBar from "@/components/SearchBar";
@@ -96,6 +96,57 @@ const Index = () => {
                 <p className="text-primary-foreground/70 text-sm">{dest.country}</p>
               </div>
             </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* About HomeSwap */}
+      <section className="bg-secondary/40 py-20">
+        <div className="container mx-auto px-4 md:px-8 max-w-4xl text-center">
+          <h2 className="font-heading text-2xl md:text-4xl font-bold mb-4">About HomeSwap</h2>
+          <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-6">
+            HomeSwap is a community-driven platform where travelers exchange homes instead of paying for hotels or rentals. 
+            You offer your home while you're away, and stay in someone else's — completely free. 
+            It's the most authentic way to travel: sleep in real neighborhoods, cook in real kitchens, and experience cities the way locals do.
+          </p>
+          <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
+            Whether it's a cozy apartment in Paris, a beachfront villa in Tulum, or a mountain cabin in the Alps — 
+            HomeSwap connects you to thousands of verified homes across the globe. No commissions, no hidden fees. Just honest travel.
+          </p>
+        </div>
+      </section>
+
+      {/* Why Choose HomeSwap */}
+      <section className="container mx-auto px-4 md:px-8 py-20">
+        <div className="text-center mb-14">
+          <h2 className="font-heading text-2xl md:text-4xl font-bold mb-3">Why Choose HomeSwap</h2>
+          <p className="text-muted-foreground max-w-lg mx-auto">Real benefits that make every trip better.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {[
+            {
+              icon: PiggyBank,
+              title: "Save Money",
+              description: "Accommodation is the biggest travel expense. With HomeSwap, you stay for free — spend your budget on experiences instead.",
+            },
+            {
+              icon: Home,
+              title: "Live Like a Local",
+              description: "Forget tourist traps. Stay in real homes, explore neighborhood cafés, and discover hidden gems only locals know about.",
+            },
+            {
+              icon: ShieldCheck,
+              title: "Trusted Community",
+              description: "Every member is verified, and our review system ensures trust. Swap with confidence knowing your home is in good hands.",
+            },
+          ].map((benefit) => (
+            <div key={benefit.title} className="bg-card rounded-2xl p-8 shadow-card text-center transition-all duration-300 hover:shadow-elevated hover:-translate-y-1">
+              <div className="inline-flex items-center justify-center h-16 w-16 rounded-xl bg-accent/10 text-accent mb-5">
+                <benefit.icon className="h-7 w-7" />
+              </div>
+              <h3 className="font-heading text-lg font-semibold mb-2">{benefit.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{benefit.description}</p>
+            </div>
           ))}
         </div>
       </section>
