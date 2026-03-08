@@ -1,17 +1,21 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Home, Plus, Bed, Bath, Users, MapPin, Trash2 } from "lucide-react";
-import { Navigate } from "react-router-dom";
+import { Home, Plus, Bed, Bath, Users, MapPin, CalendarIcon, ImagePlus, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { DateRange } from "react-day-picker";
 
 const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -28,6 +32,42 @@ const Dashboard = () => {
   const [beds, setBeds] = useState(1);
   const [baths, setBaths] = useState(1);
   const [guests, setGuests] = useState(1);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [availabilityRange, setAvailabilityRange] = useState<DateRange | undefined>();
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length + imageFiles.length > 5) {
+      toast.error("Maximum 5 images allowed");
+      return;
+    }
+    setImageFiles((prev) => [...prev, ...files]);
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => setImagePreviews((prev) => [...prev, ev.target?.result as string]);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadImages = async (): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const file of imageFiles) {
+      const ext = file.name.split(".").pop();
+      const path = `${user!.id}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("property-images").upload(path, file);
+      if (error) throw error;
+      const { data } = supabase.storage.from("property-images").getPublicUrl(path);
+      urls.push(data.publicUrl);
+    }
+    return urls;
+  };
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -58,7 +98,13 @@ const Dashboard = () => {
 
   const addProperty = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("properties").insert({
+      setUploading(true);
+      let imageUrls: string[] = [];
+      if (imageFiles.length > 0) {
+        imageUrls = await uploadImages();
+      }
+
+      const insertData: any = {
         user_id: user!.id,
         title,
         description,
@@ -68,7 +114,17 @@ const Dashboard = () => {
         beds,
         baths,
         guests,
-      });
+        images: imageUrls,
+      };
+
+      if (availabilityRange?.from) {
+        insertData.availability_start = format(availabilityRange.from, "yyyy-MM-dd");
+      }
+      if (availabilityRange?.to) {
+        insertData.availability_end = format(availabilityRange.to, "yyyy-MM-dd");
+      }
+
+      const { error } = await supabase.from("properties").insert(insertData);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -76,8 +132,13 @@ const Dashboard = () => {
       queryClient.invalidateQueries({ queryKey: ["my-properties"] });
       setShowAddProperty(false);
       setTitle(""); setDescription(""); setLocation(""); setCountry("");
+      setImageFiles([]); setImagePreviews([]); setAvailabilityRange(undefined);
+      setUploading(false);
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => {
+      toast.error(e.message);
+      setUploading(false);
+    },
   });
 
   const updateBooking = useMutation({
@@ -94,6 +155,12 @@ const Dashboard = () => {
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-background"><p className="text-muted-foreground">Loading...</p></div>;
   if (!user) return <Navigate to="/login" />;
+
+  const availabilityLabel = availabilityRange?.from
+    ? availabilityRange.to
+      ? `${format(availabilityRange.from, "MMM d, yyyy")} – ${format(availabilityRange.to, "MMM d, yyyy")}`
+      : format(availabilityRange.from, "MMM d, yyyy")
+    : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -160,8 +227,58 @@ const Dashboard = () => {
                   <Input type="number" min={1} value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="rounded-xl" />
                 </div>
               </div>
-              <Button type="submit" disabled={addProperty.isPending}>
-                {addProperty.isPending ? "Adding..." : "Add Property"}
+
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <Label>Property Images (max 5)</Label>
+                <div className="flex flex-wrap gap-3">
+                  {imagePreviews.map((src, i) => (
+                    <div key={i} className="relative h-24 w-24 rounded-xl overflow-hidden border border-border group">
+                      <img src={src} alt={`Preview ${i + 1}`} className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(i)}
+                        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full h-5 w-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {imageFiles.length < 5 && (
+                    <label className="h-24 w-24 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary/50 transition-colors text-muted-foreground">
+                      <ImagePlus className="h-5 w-5" />
+                      <span className="text-xs">Add</span>
+                      <input type="file" accept="image/*" multiple onChange={handleImageSelect} className="hidden" />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Availability Dates */}
+              <div className="space-y-2">
+                <Label>Availability Dates</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" type="button" className={cn("w-full md:w-auto rounded-xl h-11 justify-start text-left font-normal", !availabilityLabel && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {availabilityLabel || "Select available dates"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="range"
+                      selected={availabilityRange}
+                      onSelect={setAvailabilityRange}
+                      numberOfMonths={2}
+                      disabled={(date) => date < new Date()}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <Button type="submit" disabled={addProperty.isPending || uploading}>
+                {uploading ? "Uploading images..." : addProperty.isPending ? "Adding..." : "Add Property"}
               </Button>
             </form>
           )}
@@ -169,15 +286,22 @@ const Dashboard = () => {
           {properties && properties.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {properties.map((p) => (
-                <div key={p.id} className="bg-card rounded-xl shadow-card p-4 space-y-2">
-                  <h3 className="font-heading font-semibold">{p.title}</h3>
-                  <div className="flex items-center gap-1 text-muted-foreground text-sm">
-                    <MapPin className="h-3.5 w-3.5" /> {p.location}
-                  </div>
-                  <div className="flex gap-3 text-muted-foreground text-sm">
-                    <span className="flex items-center gap-1"><Bed className="h-3.5 w-3.5" /> {p.beds}</span>
-                    <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5" /> {p.baths}</span>
-                    <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {p.guests}</span>
+                <div key={p.id} className="bg-card rounded-xl shadow-card overflow-hidden">
+                  {p.images && p.images.length > 0 && p.images[0] !== "" ? (
+                    <img src={p.images[0]} alt={p.title} className="h-36 w-full object-cover" />
+                  ) : (
+                    <div className="h-36 w-full bg-muted flex items-center justify-center"><Home className="h-8 w-8 text-muted-foreground" /></div>
+                  )}
+                  <div className="p-4 space-y-2">
+                    <h3 className="font-heading font-semibold">{p.title}</h3>
+                    <div className="flex items-center gap-1 text-muted-foreground text-sm">
+                      <MapPin className="h-3.5 w-3.5" /> {p.location}
+                    </div>
+                    <div className="flex gap-3 text-muted-foreground text-sm">
+                      <span className="flex items-center gap-1"><Bed className="h-3.5 w-3.5" /> {p.beds}</span>
+                      <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5" /> {p.baths}</span>
+                      <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {p.guests}</span>
+                    </div>
                   </div>
                 </div>
               ))}
