@@ -74,8 +74,8 @@ const PropertyDetail = () => {
         baths: dbProperty.baths,
         guests: dbProperty.guests,
         images: dbProperty.images?.length ? dbProperty.images : ["/placeholder.svg"],
-        hostName: (dbProperty as any).profiles?.first_name
-          ? `${(dbProperty as any).profiles.first_name} ${(dbProperty as any).profiles.last_name || ""}`.trim()
+        hostName: dbProperty.host_profile?.first_name
+          ? `${dbProperty.host_profile.first_name} ${dbProperty.host_profile.last_name || ""}`.trim()
           : "Host",
         hostAvatar: (dbProperty as any).profiles?.avatar_url || "",
         userId: dbProperty.user_id,
