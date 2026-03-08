@@ -48,9 +48,14 @@ const Navbar = () => {
             <Search className="h-4 w-4" /> Explore
           </Link>
           {user ? (
-            <Link to="/dashboard" className="flex items-center gap-2 py-2 text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>
-              <LayoutDashboard className="h-4 w-4" /> Dashboard
-            </Link>
+            <>
+              <Link to="/messages" className="flex items-center gap-2 py-2 text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>
+                <MessageSquare className="h-4 w-4" /> Messages
+              </Link>
+              <Link to="/dashboard" className="flex items-center gap-2 py-2 text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>
+                <LayoutDashboard className="h-4 w-4" /> Dashboard
+              </Link>
+            </>
           ) : (
             <>
               <Link to="/login" className="flex items-center gap-2 py-2 text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>
