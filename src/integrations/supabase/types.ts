@@ -137,6 +137,8 @@ export type Database = {
       }
       properties: {
         Row: {
+          availability_end: string | null
+          availability_start: string | null
           available: boolean
           baths: number
           beds: number
@@ -153,6 +155,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          availability_end?: string | null
+          availability_start?: string | null
           available?: boolean
           baths?: number
           beds?: number
@@ -169,6 +173,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          availability_end?: string | null
+          availability_start?: string | null
           available?: boolean
           baths?: number
           beds?: number
