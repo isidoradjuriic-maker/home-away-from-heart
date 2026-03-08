@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, Search, User, LayoutDashboard } from "lucide-react";
+import { Menu, X, Home, Search, User, LayoutDashboard, MessageSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
