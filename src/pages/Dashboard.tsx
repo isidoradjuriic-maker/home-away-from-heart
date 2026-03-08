@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Home, Plus, Bed, Bath, Users, MapPin, CalendarIcon, ImagePlus, X } from "lucide-react";
+import { Home, Plus, Bed, Bath, Users, MapPin, CalendarIcon, ImagePlus, X, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { DateRange } from "react-day-picker";
 
@@ -139,6 +139,18 @@ const Dashboard = () => {
       toast.error(e.message);
       setUploading(false);
     },
+  });
+
+  const deleteProperty = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("properties").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Property deleted");
+      queryClient.invalidateQueries({ queryKey: ["my-properties"] });
+    },
+    onError: (e: any) => toast.error(e.message),
   });
 
   const updateBooking = useMutation({
@@ -293,7 +305,16 @@ const Dashboard = () => {
                     <div className="h-36 w-full bg-muted flex items-center justify-center"><Home className="h-8 w-8 text-muted-foreground" /></div>
                   )}
                   <div className="p-4 space-y-2">
-                    <h3 className="font-heading font-semibold">{p.title}</h3>
+                    <div className="flex items-start justify-between">
+                      <h3 className="font-heading font-semibold">{p.title}</h3>
+                      <button
+                        type="button"
+                        onClick={() => { if (confirm("Delete this property?")) deleteProperty.mutate(p.id); }}
+                        className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                     <div className="flex items-center gap-1 text-muted-foreground text-sm">
                       <MapPin className="h-3.5 w-3.5" /> {p.location}
                     </div>
