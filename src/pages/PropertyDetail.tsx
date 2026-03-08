@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, MapPin, Bed, Bath, Users, ArrowLeft, Heart, Share2, MessageSquare, CalendarIcon } from "lucide-react";
+import { Star, MapPin, Bed, Bath, Users, ArrowLeft, Heart, Share2, MessageSquare, CalendarIcon, Send } from "lucide-react";
 import { format, eachDayOfInterval, isWithinInterval, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -24,6 +25,7 @@ const PropertyDetail = () => {
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [message, setMessage] = useState("");
+  const [directMessage, setDirectMessage] = useState("");
 
   // Try to fetch from DB first
   const { data: dbProperty, isLoading } = useQuery({
@@ -208,6 +210,8 @@ const PropertyDetail = () => {
                 </div>
               ) : isOwner ? (
                 <p className="text-sm text-muted-foreground text-center">This is your property</p>
+              ) : !dbProperty ? (
+                <p className="text-sm text-muted-foreground text-center">Mock property – booking unavailable</p>
               ) : (
                 <div className="space-y-4">
                   {/* Date range picker */}
@@ -261,6 +265,40 @@ const PropertyDetail = () => {
                     {createBooking.isPending ? "Sending..." : "Request to Swap"}
                   </Button>
                   <p className="text-xs text-center text-muted-foreground">Free to swap · No booking fees</p>
+
+                  {/* Direct Message to Host */}
+                  <div className="border-t pt-4 mt-2">
+                    <p className="text-sm font-medium mb-2">Or send a message</p>
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (!directMessage.trim() || !user || !dbProperty) return;
+                        const { error } = await supabase.from("messages").insert({
+                          sender_id: user.id,
+                          receiver_id: dbProperty.user_id,
+                          content: directMessage.trim(),
+                        });
+                        if (error) {
+                          toast.error(error.message);
+                        } else {
+                          toast.success("Message sent!");
+                          setDirectMessage("");
+                          navigate("/messages");
+                        }
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Input
+                        value={directMessage}
+                        onChange={(e) => setDirectMessage(e.target.value)}
+                        placeholder="Hi! I'm interested..."
+                        className="flex-1 rounded-xl text-sm"
+                      />
+                      <Button type="submit" size="icon" variant="outline" className="rounded-xl h-10 w-10 flex-shrink-0">
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </form>
+                  </div>
                 </div>
               )}
             </div>

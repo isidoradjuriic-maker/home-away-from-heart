@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, Search, User, LayoutDashboard } from "lucide-react";
+import { Menu, X, Home, Search, User, LayoutDashboard, MessageSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
@@ -21,9 +21,14 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-6">
           <Link to="/search" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Explore</Link>
           {user ? (
-            <Link to="/dashboard">
-              <Button size="sm"><LayoutDashboard className="h-4 w-4 mr-1" /> Dashboard</Button>
-            </Link>
+            <>
+              <Link to="/messages" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                <MessageSquare className="h-4 w-4" /> Messages
+              </Link>
+              <Link to="/dashboard">
+                <Button size="sm"><LayoutDashboard className="h-4 w-4 mr-1" /> Dashboard</Button>
+              </Link>
+            </>
           ) : (
             <>
               <Link to="/login"><Button variant="outline" size="sm">Log in</Button></Link>
@@ -43,9 +48,14 @@ const Navbar = () => {
             <Search className="h-4 w-4" /> Explore
           </Link>
           {user ? (
-            <Link to="/dashboard" className="flex items-center gap-2 py-2 text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>
-              <LayoutDashboard className="h-4 w-4" /> Dashboard
-            </Link>
+            <>
+              <Link to="/messages" className="flex items-center gap-2 py-2 text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>
+                <MessageSquare className="h-4 w-4" /> Messages
+              </Link>
+              <Link to="/dashboard" className="flex items-center gap-2 py-2 text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>
+                <LayoutDashboard className="h-4 w-4" /> Dashboard
+              </Link>
+            </>
           ) : (
             <>
               <Link to="/login" className="flex items-center gap-2 py-2 text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>
