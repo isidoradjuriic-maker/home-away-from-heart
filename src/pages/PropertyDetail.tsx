@@ -245,17 +245,6 @@ const PropertyDetail = () => {
                     </Popover>
                   </div>
 
-                  {/* Message to host */}
-                  <div>
-                    <p className="text-sm font-medium mb-2">Message to host (optional)</p>
-                    <Textarea
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Hi! I'd love to swap homes..."
-                      className="rounded-xl text-sm"
-                      rows={3}
-                    />
-                  </div>
 
                   <Button
                     className="w-full rounded-xl h-12"
