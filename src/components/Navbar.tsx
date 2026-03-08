@@ -21,9 +21,14 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-6">
           <Link to="/search" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Explore</Link>
           {user ? (
-            <Link to="/dashboard">
-              <Button size="sm"><LayoutDashboard className="h-4 w-4 mr-1" /> Dashboard</Button>
-            </Link>
+            <>
+              <Link to="/messages" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                <MessageSquare className="h-4 w-4" /> Messages
+              </Link>
+              <Link to="/dashboard">
+                <Button size="sm"><LayoutDashboard className="h-4 w-4 mr-1" /> Dashboard</Button>
+              </Link>
+            </>
           ) : (
             <>
               <Link to="/login"><Button variant="outline" size="sm">Log in</Button></Link>
