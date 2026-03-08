@@ -100,6 +100,23 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Featured Listings */}
+      <section className="container mx-auto px-4 md:px-8 py-16">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="font-heading text-2xl md:text-3xl font-bold">Featured Homes</h2>
+          <Link to="/search">
+            <Button variant="ghost" className="text-primary">
+              View all <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {mockProperties.slice(0, 6).map((p) => (
+            <PropertyCard key={p.id} property={p} />
+          ))}
+        </div>
+      </section>
+
       {/* About HomeSwap */}
       <section className="bg-secondary/40 py-20">
         <div className="container mx-auto px-4 md:px-8 max-w-4xl text-center">
@@ -147,23 +164,6 @@ const Index = () => {
               <h3 className="font-heading text-lg font-semibold mb-2">{benefit.title}</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">{benefit.description}</p>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Featured Listings */}
-      <section className="container mx-auto px-4 md:px-8 pb-16">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="font-heading text-2xl md:text-3xl font-bold">Featured Homes</h2>
-          <Link to="/search">
-            <Button variant="ghost" className="text-primary">
-              View all <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockProperties.slice(0, 6).map((p) => (
-            <PropertyCard key={p.id} property={p} />
           ))}
         </div>
       </section>
