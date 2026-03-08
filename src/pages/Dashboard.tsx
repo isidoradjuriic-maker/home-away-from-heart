@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Home, Plus, Bed, Bath, Users, MapPin, CalendarIcon, ImagePlus, X, Trash2 } from "lucide-react";
+import { Home, Plus, Bed, Bath, Users, MapPin, CalendarIcon, ImagePlus, X, Trash2, Pencil } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { DateRange } from "react-day-picker";
 
@@ -22,6 +22,7 @@ const Dashboard = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [showAddProperty, setShowAddProperty] = useState(false);
+  const [editingPropertyId, setEditingPropertyId] = useState<string | null>(null);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -34,12 +35,46 @@ const Dashboard = () => {
   const [guests, setGuests] = useState(1);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [availabilityRange, setAvailabilityRange] = useState<DateRange | undefined>();
   const [uploading, setUploading] = useState(false);
 
+  const resetForm = () => {
+    setTitle(""); setDescription(""); setLocation(""); setCountry("");
+    setType("apartment"); setBeds(1); setBaths(1); setGuests(1);
+    setImageFiles([]); setImagePreviews([]); setExistingImages([]);
+    setAvailabilityRange(undefined); setEditingPropertyId(null);
+    setShowAddProperty(false);
+  };
+
+  const startEdit = (p: any) => {
+    setEditingPropertyId(p.id);
+    setTitle(p.title);
+    setDescription(p.description || "");
+    setLocation(p.location);
+    setCountry(p.country);
+    setType(p.type);
+    setBeds(p.beds);
+    setBaths(p.baths);
+    setGuests(p.guests);
+    setExistingImages(p.images?.filter((img: string) => img !== "") || []);
+    setImageFiles([]);
+    setImagePreviews([]);
+    if (p.availability_start && p.availability_end) {
+      setAvailabilityRange({
+        from: new Date(p.availability_start + "T00:00:00"),
+        to: new Date(p.availability_end + "T00:00:00"),
+      });
+    } else {
+      setAvailabilityRange(undefined);
+    }
+    setShowAddProperty(true);
+  };
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length + imageFiles.length > 5) {
+    const total = files.length + imageFiles.length + existingImages.length;
+    if (total > 5) {
       toast.error("Maximum 5 images allowed");
       return;
     }
@@ -54,6 +89,10 @@ const Dashboard = () => {
   const removeImage = (index: number) => {
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingImage = (index: number) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const uploadImages = async (): Promise<string[]> => {
@@ -96,16 +135,16 @@ const Dashboard = () => {
     enabled: !!user,
   });
 
-  const addProperty = useMutation({
+  const saveProperty = useMutation({
     mutationFn: async () => {
       setUploading(true);
-      let imageUrls: string[] = [];
+      let newImageUrls: string[] = [];
       if (imageFiles.length > 0) {
-        imageUrls = await uploadImages();
+        newImageUrls = await uploadImages();
       }
+      const allImages = [...existingImages, ...newImageUrls];
 
-      const insertData: any = {
-        user_id: user!.id,
+      const propertyData: any = {
         title,
         description,
         location,
@@ -114,25 +153,29 @@ const Dashboard = () => {
         beds,
         baths,
         guests,
-        images: imageUrls,
+        images: allImages,
       };
 
       if (availabilityRange?.from) {
-        insertData.availability_start = format(availabilityRange.from, "yyyy-MM-dd");
+        propertyData.availability_start = format(availabilityRange.from, "yyyy-MM-dd");
       }
       if (availabilityRange?.to) {
-        insertData.availability_end = format(availabilityRange.to, "yyyy-MM-dd");
+        propertyData.availability_end = format(availabilityRange.to, "yyyy-MM-dd");
       }
 
-      const { error } = await supabase.from("properties").insert(insertData);
-      if (error) throw error;
+      if (editingPropertyId) {
+        const { error } = await supabase.from("properties").update(propertyData).eq("id", editingPropertyId);
+        if (error) throw error;
+      } else {
+        propertyData.user_id = user!.id;
+        const { error } = await supabase.from("properties").insert(propertyData);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
-      toast.success("Property added!");
+      toast.success(editingPropertyId ? "Property updated!" : "Property added!");
       queryClient.invalidateQueries({ queryKey: ["my-properties"] });
-      setShowAddProperty(false);
-      setTitle(""); setDescription(""); setLocation(""); setCountry("");
-      setImageFiles([]); setImagePreviews([]); setAvailabilityRange(undefined);
+      resetForm();
       setUploading(false);
     },
     onError: (e: any) => {
@@ -174,6 +217,8 @@ const Dashboard = () => {
       : format(availabilityRange.from, "MMM d, yyyy")
     : null;
 
+  const totalImageCount = existingImages.length + imageFiles.length;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -190,13 +235,16 @@ const Dashboard = () => {
         <section className="mb-12">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-heading text-xl font-semibold">My Properties</h2>
-            <Button size="sm" onClick={() => setShowAddProperty(!showAddProperty)}>
+            <Button size="sm" onClick={() => { if (showAddProperty) resetForm(); else setShowAddProperty(true); }}>
               <Plus className="h-4 w-4 mr-1" /> Add Property
             </Button>
           </div>
 
           {showAddProperty && (
-            <form onSubmit={(e) => { e.preventDefault(); addProperty.mutate(); }} className="bg-card rounded-xl shadow-card p-6 mb-6 space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); saveProperty.mutate(); }} className="bg-card rounded-xl shadow-card p-6 mb-6 space-y-4">
+              <h3 className="font-heading font-semibold text-lg">
+                {editingPropertyId ? "Edit Property" : "Add New Property"}
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Title</Label>
@@ -244,8 +292,22 @@ const Dashboard = () => {
               <div className="space-y-2">
                 <Label>Property Images (max 5)</Label>
                 <div className="flex flex-wrap gap-3">
+                  {/* Existing images */}
+                  {existingImages.map((src, i) => (
+                    <div key={`existing-${i}`} className="relative h-24 w-24 rounded-xl overflow-hidden border border-border group">
+                      <img src={src} alt={`Existing ${i + 1}`} className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeExistingImage(i)}
+                        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full h-5 w-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  {/* New image previews */}
                   {imagePreviews.map((src, i) => (
-                    <div key={i} className="relative h-24 w-24 rounded-xl overflow-hidden border border-border group">
+                    <div key={`new-${i}`} className="relative h-24 w-24 rounded-xl overflow-hidden border border-border group">
                       <img src={src} alt={`Preview ${i + 1}`} className="h-full w-full object-cover" />
                       <button
                         type="button"
@@ -256,7 +318,7 @@ const Dashboard = () => {
                       </button>
                     </div>
                   ))}
-                  {imageFiles.length < 5 && (
+                  {totalImageCount < 5 && (
                     <label className="h-24 w-24 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-primary/50 transition-colors text-muted-foreground">
                       <ImagePlus className="h-5 w-5" />
                       <span className="text-xs">Add</span>
@@ -289,9 +351,14 @@ const Dashboard = () => {
                 </Popover>
               </div>
 
-              <Button type="submit" disabled={addProperty.isPending || uploading}>
-                {uploading ? "Uploading images..." : addProperty.isPending ? "Adding..." : "Add Property"}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="submit" disabled={saveProperty.isPending || uploading}>
+                  {uploading ? "Uploading images..." : saveProperty.isPending ? "Saving..." : editingPropertyId ? "Update Property" : "Add Property"}
+                </Button>
+                {editingPropertyId && (
+                  <Button type="button" variant="outline" onClick={resetForm}>Cancel</Button>
+                )}
+              </div>
             </form>
           )}
 
@@ -307,13 +374,22 @@ const Dashboard = () => {
                   <div className="p-4 space-y-2">
                     <div className="flex items-start justify-between">
                       <h3 className="font-heading font-semibold">{p.title}</h3>
-                      <button
-                        type="button"
-                        onClick={() => { if (confirm("Delete this property?")) deleteProperty.mutate(p.id); }}
-                        className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => startEdit(p)}
+                          className="text-muted-foreground hover:text-primary transition-colors p-1"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { if (confirm("Delete this property?")) deleteProperty.mutate(p.id); }}
+                          className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                     <div className="flex items-center gap-1 text-muted-foreground text-sm">
                       <MapPin className="h-3.5 w-3.5" /> {p.location}
@@ -323,6 +399,12 @@ const Dashboard = () => {
                       <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5" /> {p.baths}</span>
                       <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {p.guests}</span>
                     </div>
+                    {p.availability_start && p.availability_end && (
+                      <p className="text-xs text-muted-foreground">
+                        <CalendarIcon className="h-3 w-3 inline mr-1" />
+                        {p.availability_start} → {p.availability_end}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
