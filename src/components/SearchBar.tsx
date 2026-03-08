@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, MapPin, Calendar, Home } from "lucide-react";
+import { Search, MapPin, Calendar as CalendarIcon, Home } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 
 interface SearchBarProps {
   variant?: "hero" | "compact";
@@ -10,17 +15,24 @@ interface SearchBarProps {
 const SearchBar = ({ variant = "hero" }: SearchBarProps) => {
   const navigate = useNavigate();
   const [destination, setDestination] = useState("");
-  const [dates, setDates] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [type, setType] = useState("");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
     if (destination) params.set("q", destination);
-    if (dates) params.set("dates", dates);
+    if (dateRange?.from) params.set("from", format(dateRange.from, "yyyy-MM-dd"));
+    if (dateRange?.to) params.set("to", format(dateRange.to, "yyyy-MM-dd"));
     if (type) params.set("type", type);
     navigate(`/search?${params.toString()}`);
   };
+
+  const dateLabel = dateRange?.from
+    ? dateRange.to
+      ? `${format(dateRange.from, "MMM d")} – ${format(dateRange.to, "MMM d")}`
+      : format(dateRange.from, "MMM d, yyyy")
+    : null;
 
   if (variant === "compact") {
     return (
@@ -56,19 +68,34 @@ const SearchBar = ({ variant = "hero" }: SearchBarProps) => {
             />
           </div>
         </div>
+
+        {/* Date range picker */}
         <div className="flex-1 flex items-center gap-3 px-4 py-3 md:border-r border-border">
-          <Calendar className="h-5 w-5 text-primary shrink-0" />
-          <div className="flex-1">
-            <label className="text-xs font-medium text-muted-foreground block">Dates</label>
-            <input
-              type="text"
-              placeholder="Add dates"
-              value={dates}
-              onChange={(e) => setDates(e.target.value)}
-              className="bg-transparent text-sm outline-none placeholder:text-muted-foreground w-full font-medium"
-            />
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button type="button" className="flex items-center gap-3 w-full text-left">
+                <CalendarIcon className="h-5 w-5 text-primary shrink-0" />
+                <div className="flex-1">
+                  <span className="text-xs font-medium text-muted-foreground block">Dates</span>
+                  <span className={cn("text-sm font-medium", !dateLabel && "text-muted-foreground")}>
+                    {dateLabel || "Add dates"}
+                  </span>
+                </div>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+                disabled={(date) => date < new Date()}
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
+
         <div className="flex-1 flex items-center gap-3 px-4 py-3">
           <Home className="h-5 w-5 text-primary shrink-0" />
           <div className="flex-1">
