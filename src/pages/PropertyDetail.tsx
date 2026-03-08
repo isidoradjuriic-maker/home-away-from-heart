@@ -25,6 +25,7 @@ const PropertyDetail = () => {
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [message, setMessage] = useState("");
+  const [directMessage, setDirectMessage] = useState("");
 
   // Try to fetch from DB first
   const { data: dbProperty, isLoading } = useQuery({
