@@ -141,6 +141,18 @@ const Dashboard = () => {
     },
   });
 
+  const deleteProperty = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("properties").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Property deleted");
+      queryClient.invalidateQueries({ queryKey: ["my-properties"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const updateBooking = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from("bookings").update({ status: status as any }).eq("id", id);
