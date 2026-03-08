@@ -210,6 +210,8 @@ const PropertyDetail = () => {
                 </div>
               ) : isOwner ? (
                 <p className="text-sm text-muted-foreground text-center">This is your property</p>
+              ) : !dbProperty ? (
+                <p className="text-sm text-muted-foreground text-center">Mock property – booking unavailable</p>
               ) : (
                 <div className="space-y-4">
                   {/* Date range picker */}
