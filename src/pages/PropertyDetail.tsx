@@ -29,12 +29,18 @@ const PropertyDetail = () => {
   const { data: dbProperty, isLoading } = useQuery({
     queryKey: ["property", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: prop } = await supabase
         .from("properties")
-        .select("*, profiles!properties_user_id_fkey(first_name, last_name, avatar_url)")
+        .select("*")
         .eq("id", id!)
         .single();
-      return data;
+      if (!prop) return null;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, avatar_url")
+        .eq("user_id", prop.user_id)
+        .single();
+      return { ...prop, host_profile: profile };
     },
     enabled: !!id && id.length > 10, // UUIDs are long, mock IDs are short
   });
