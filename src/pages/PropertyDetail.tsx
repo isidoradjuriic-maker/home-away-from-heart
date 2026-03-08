@@ -77,7 +77,7 @@ const PropertyDetail = () => {
         hostName: dbProperty.host_profile?.first_name
           ? `${dbProperty.host_profile.first_name} ${dbProperty.host_profile.last_name || ""}`.trim()
           : "Host",
-        hostAvatar: (dbProperty as any).profiles?.avatar_url || "",
+        hostAvatar: dbProperty.host_profile?.avatar_url || "",
         userId: dbProperty.user_id,
         rating: 0,
         reviewCount: 0,
