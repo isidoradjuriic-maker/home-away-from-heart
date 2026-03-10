@@ -141,7 +141,16 @@ const SearchPage = () => {
                     )}
                   </div>
                   <div className="p-4 space-y-2">
-                    <Badge variant="secondary" className="capitalize text-xs">{p.type}</Badge>
+                    <div className="flex items-center justify-between">
+                      <Badge variant="secondary" className="capitalize text-xs">{p.type}</Badge>
+                      {reviewStatsMap.get(p.id) && (
+                        <div className="flex items-center gap-1">
+                          <Star className="h-3.5 w-3.5 fill-primary text-primary" />
+                          <span className="text-xs font-semibold">{reviewStatsMap.get(p.id)!.avg.toFixed(1)}</span>
+                          <span className="text-xs text-muted-foreground">({reviewStatsMap.get(p.id)!.count})</span>
+                        </div>
+                      )}
+                    </div>
                     <h3 className="font-heading font-semibold text-foreground">{p.title}</h3>
                     <div className="flex items-center gap-1 text-muted-foreground text-sm">
                       <MapPin className="h-3.5 w-3.5" /> {p.location}
