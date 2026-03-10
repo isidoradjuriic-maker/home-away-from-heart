@@ -125,5 +125,5 @@ export const popularDestinations = [
   { name: "Santorini", country: "Greece", image: "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=400&h=300&fit=crop" },
   { name: "Paris", country: "France", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&h=300&fit=crop" },
   { name: "Tokyo", country: "Japan", image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&h=300&fit=crop" },
-  { name: "Tulum", country: "Mexico", image: "https://images.unsplash.com/photo-1682553064786-dee8e4302543?w=400&h=300&fit=crop" },
+  { name: "Tulum", country: "Mexico", image: "https://images.unsplash.com/photo-1510097467424-192d713fd8b2?w=400&h=300&fit=crop" },
 ];
