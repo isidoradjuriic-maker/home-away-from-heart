@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import SearchBar from "@/components/SearchBar";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { SlidersHorizontal, MapPin, Bed, Users, Home, Search } from "lucide-react";
+import { SlidersHorizontal, MapPin, Bed, Users, Home, Search, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
