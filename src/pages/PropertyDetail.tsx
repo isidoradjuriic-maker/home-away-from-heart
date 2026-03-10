@@ -18,6 +18,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { mockProperties } from "@/lib/mockData";
 import type { DateRange } from "react-day-picker";
+import ReviewSection from "@/components/ReviewSection";
 
 const PropertyDetail = () => {
   const { id } = useParams();
