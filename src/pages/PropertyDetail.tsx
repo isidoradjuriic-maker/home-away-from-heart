@@ -45,7 +45,22 @@ const PropertyDetail = () => {
         .single();
       return { ...prop, host_profile: profile };
     },
-    enabled: !!id && id.length > 10, // UUIDs are long, mock IDs are short
+    enabled: !!id && id.length > 10,
+  });
+
+  // Fetch average rating
+  const { data: reviewStats } = useQuery({
+    queryKey: ["property-reviews-avg", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("reviews")
+        .select("rating")
+        .eq("property_id", id!);
+      if (!data || data.length === 0) return { avg: 0, count: 0 };
+      const avg = data.reduce((s, r) => s + r.rating, 0) / data.length;
+      return { avg, count: data.length };
+    },
+    enabled: !!id && id.length > 10,
   });
 
   // Fetch existing bookings for this property to block dates
