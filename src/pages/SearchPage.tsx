@@ -34,15 +34,18 @@ const SearchPage = () => {
   const filtered = useMemo(() => {
     if (!dbProperties) return [];
     return dbProperties.filter((p) => {
+      const q = query.toLowerCase();
       const matchQuery =
         !query ||
-        p.location.toLowerCase().includes(query.toLowerCase()) ||
-        p.title.toLowerCase().includes(query.toLowerCase()) ||
-        p.country.toLowerCase().includes(query.toLowerCase());
+        p.location.toLowerCase().includes(q) ||
+        p.title.toLowerCase().includes(q) ||
+        p.country.toLowerCase().includes(q) ||
+        (p.description && p.description.toLowerCase().includes(q));
       const matchType = selectedType === "all" || p.type === selectedType;
       const matchName =
         !nameSearch ||
-        p.title.toLowerCase().includes(nameSearch.toLowerCase());
+        p.title.toLowerCase().includes(nameSearch.toLowerCase()) ||
+        p.location.toLowerCase().includes(nameSearch.toLowerCase());
       return matchQuery && matchType && matchName;
     });
   }, [query, selectedType, nameSearch, dbProperties]);
