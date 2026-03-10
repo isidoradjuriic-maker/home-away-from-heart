@@ -18,6 +18,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { mockProperties } from "@/lib/mockData";
 import type { DateRange } from "react-day-picker";
+import ReviewSection from "@/components/ReviewSection";
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -44,7 +45,22 @@ const PropertyDetail = () => {
         .single();
       return { ...prop, host_profile: profile };
     },
-    enabled: !!id && id.length > 10, // UUIDs are long, mock IDs are short
+    enabled: !!id && id.length > 10,
+  });
+
+  // Fetch average rating
+  const { data: reviewStats } = useQuery({
+    queryKey: ["property-reviews-avg", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("reviews")
+        .select("rating")
+        .eq("property_id", id!);
+      if (!data || data.length === 0) return { avg: 0, count: 0 };
+      const avg = data.reduce((s, r) => s + r.rating, 0) / data.length;
+      return { avg, count: data.length };
+    },
+    enabled: !!id && id.length > 10,
   });
 
   // Fetch existing bookings for this property to block dates
@@ -173,6 +189,14 @@ const PropertyDetail = () => {
               <h1 className="font-heading text-2xl md:text-3xl font-bold mb-2">{property.title}</h1>
               <div className="flex items-center gap-1 text-muted-foreground">
                 <MapPin className="h-4 w-4" /> <span>{property.location}</span>
+                {reviewStats && reviewStats.count > 0 && (
+                  <>
+                    <span className="mx-2">·</span>
+                    <Star className="h-4 w-4 fill-primary text-primary" />
+                    <span className="text-foreground font-medium">{reviewStats.avg.toFixed(1)}</span>
+                    <span className="text-muted-foreground text-sm">({reviewStats.count} review{reviewStats.count !== 1 && "s"})</span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -186,6 +210,9 @@ const PropertyDetail = () => {
               <h3 className="font-heading text-lg font-semibold mb-3">About this home</h3>
               <p className="text-muted-foreground leading-relaxed">{property.description}</p>
             </div>
+
+            {/* Reviews Section */}
+            <ReviewSection propertyId={property.id} isDbProperty={!!dbProperty} />
           </div>
 
           {/* Booking sidebar */}

@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import SearchBar from "@/components/SearchBar";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { SlidersHorizontal, MapPin, Bed, Users, Home, Search } from "lucide-react";
+import { SlidersHorizontal, MapPin, Bed, Users, Home, Search, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,29 @@ const SearchPage = () => {
       return data ?? [];
     },
   });
+
+  // Fetch all reviews for average ratings
+  const { data: allReviews } = useQuery({
+    queryKey: ["all-reviews"],
+    queryFn: async () => {
+      const { data } = await supabase.from("reviews").select("property_id, rating");
+      return data ?? [];
+    },
+  });
+
+  const reviewStatsMap = useMemo(() => {
+    const map = new Map<string, { avg: number; count: number }>();
+    if (!allReviews) return map;
+    const grouped: Record<string, number[]> = {};
+    allReviews.forEach((r) => {
+      if (!grouped[r.property_id]) grouped[r.property_id] = [];
+      grouped[r.property_id].push(r.rating);
+    });
+    Object.entries(grouped).forEach(([pid, ratings]) => {
+      map.set(pid, { avg: ratings.reduce((a, b) => a + b, 0) / ratings.length, count: ratings.length });
+    });
+    return map;
+  }, [allReviews]);
 
   const filtered = useMemo(() => {
     if (!dbProperties) return [];
@@ -118,7 +141,16 @@ const SearchPage = () => {
                     )}
                   </div>
                   <div className="p-4 space-y-2">
-                    <Badge variant="secondary" className="capitalize text-xs">{p.type}</Badge>
+                    <div className="flex items-center justify-between">
+                      <Badge variant="secondary" className="capitalize text-xs">{p.type}</Badge>
+                      {reviewStatsMap.get(p.id) && (
+                        <div className="flex items-center gap-1">
+                          <Star className="h-3.5 w-3.5 fill-primary text-primary" />
+                          <span className="text-xs font-semibold">{reviewStatsMap.get(p.id)!.avg.toFixed(1)}</span>
+                          <span className="text-xs text-muted-foreground">({reviewStatsMap.get(p.id)!.count})</span>
+                        </div>
+                      )}
+                    </div>
                     <h3 className="font-heading font-semibold text-foreground">{p.title}</h3>
                     <div className="flex items-center gap-1 text-muted-foreground text-sm">
                       <MapPin className="h-3.5 w-3.5" /> {p.location}
