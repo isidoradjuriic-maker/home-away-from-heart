@@ -31,6 +31,29 @@ const SearchPage = () => {
     },
   });
 
+  // Fetch all reviews for average ratings
+  const { data: allReviews } = useQuery({
+    queryKey: ["all-reviews"],
+    queryFn: async () => {
+      const { data } = await supabase.from("reviews").select("property_id, rating");
+      return data ?? [];
+    },
+  });
+
+  const reviewStatsMap = useMemo(() => {
+    const map = new Map<string, { avg: number; count: number }>();
+    if (!allReviews) return map;
+    const grouped: Record<string, number[]> = {};
+    allReviews.forEach((r) => {
+      if (!grouped[r.property_id]) grouped[r.property_id] = [];
+      grouped[r.property_id].push(r.rating);
+    });
+    Object.entries(grouped).forEach(([pid, ratings]) => {
+      map.set(pid, { avg: ratings.reduce((a, b) => a + b, 0) / ratings.length, count: ratings.length });
+    });
+    return map;
+  }, [allReviews]);
+
   const filtered = useMemo(() => {
     if (!dbProperties) return [];
     return dbProperties.filter((p) => {
