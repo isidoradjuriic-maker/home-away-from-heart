@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Home, Plus, Bed, Bath, Users, MapPin, CalendarIcon, ImagePlus, X, Trash2, Pencil } from "lucide-react";
+import { Home, Plus, Bed, Bath, Users, MapPin, CalendarIcon, ImagePlus, X, Trash2, Pencil, Star } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { DateRange } from "react-day-picker";
 
