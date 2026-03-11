@@ -252,11 +252,13 @@ const Messages = () => {
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </button>
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={selectedProfile?.avatar_url ?? ""} />
-                    <AvatarFallback>{selectedName[0]}</AvatarFallback>
-                  </Avatar>
-                  <p className="font-semibold text-sm">{selectedName}</p>
+                  <Link to={`/user/${selectedPartner}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={selectedProfile?.avatar_url ?? ""} />
+                      <AvatarFallback>{selectedName[0]}</AvatarFallback>
+                    </Avatar>
+                    <p className="font-semibold text-sm">{selectedName}</p>
+                  </Link>
                 </div>
 
                 {/* Messages */}
