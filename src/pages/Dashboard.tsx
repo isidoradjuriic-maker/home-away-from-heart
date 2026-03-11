@@ -135,6 +135,19 @@ const Dashboard = () => {
     enabled: !!user,
   });
 
+  // Fetch user's existing reviews to know which bookings are already reviewed
+  const { data: myReviews } = useQuery({
+    queryKey: ["my-reviews", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("reviews")
+        .select("booking_id")
+        .eq("reviewer_id", user!.id);
+      return new Set(data?.map((r) => r.booking_id) ?? []);
+    },
+    enabled: !!user,
+  });
+
   const saveProperty = useMutation({
     mutationFn: async () => {
       setUploading(true);
