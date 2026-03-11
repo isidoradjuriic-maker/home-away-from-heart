@@ -82,14 +82,13 @@ const ReviewSection = ({ propertyId, isDbProperty }: ReviewSectionProps) => {
     queryKey: ["reviewable-booking", propertyId, user?.id],
     queryFn: async () => {
       if (!user) return null;
-      // Find accepted bookings where check_out is in the past
+      // Find accepted bookings (guest or host)
       const { data: bookings } = await supabase
         .from("bookings")
         .select("id")
         .eq("property_id", propertyId)
-        .eq("guest_id", user.id)
         .eq("status", "accepted")
-        .lte("check_out", new Date().toISOString().split("T")[0]);
+        .or(`guest_id.eq.${user.id},host_id.eq.${user.id}`);
       if (!bookings?.length) return null;
       // Check if already reviewed any of these
       const bookingIds = bookings.map((b) => b.id);
