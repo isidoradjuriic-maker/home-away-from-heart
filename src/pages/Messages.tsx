@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -252,11 +252,13 @@ const Messages = () => {
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </button>
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={selectedProfile?.avatar_url ?? ""} />
-                    <AvatarFallback>{selectedName[0]}</AvatarFallback>
-                  </Avatar>
-                  <p className="font-semibold text-sm">{selectedName}</p>
+                  <Link to={`/user/${selectedPartner}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={selectedProfile?.avatar_url ?? ""} />
+                      <AvatarFallback>{selectedName[0]}</AvatarFallback>
+                    </Avatar>
+                    <p className="font-semibold text-sm">{selectedName}</p>
+                  </Link>
                 </div>
 
                 {/* Messages */}
