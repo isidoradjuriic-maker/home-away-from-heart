@@ -299,7 +299,6 @@ const PropertyDetail = () => {
                         } else {
                           toast.success("Message sent!");
                           setDirectMessage("");
-                          navigate("/messages");
                         }
                       }}
                       className="flex items-center gap-2"
