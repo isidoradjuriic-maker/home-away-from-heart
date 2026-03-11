@@ -441,12 +441,26 @@ const Dashboard = () => {
                       {b.status}
                     </span>
                   </div>
-                  {b.host_id === user.id && b.status === 'pending' && (
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => updateBooking.mutate({ id: b.id, status: 'accepted' })}>Accept</Button>
-                      <Button size="sm" variant="outline" onClick={() => updateBooking.mutate({ id: b.id, status: 'rejected' })}>Reject</Button>
-                    </div>
-                  )}
+                  <div className="flex gap-2">
+                    {b.host_id === user.id && b.status === 'pending' && (
+                      <>
+                        <Button size="sm" onClick={() => updateBooking.mutate({ id: b.id, status: 'accepted' })}>Accept</Button>
+                        <Button size="sm" variant="outline" onClick={() => updateBooking.mutate({ id: b.id, status: 'rejected' })}>Reject</Button>
+                      </>
+                    )}
+                    {b.status === 'accepted' && myReviews && !myReviews.has(b.id) && (
+                      <Link to={`/property/${b.property_id}`}>
+                        <Button size="sm" variant="outline" className="gap-1.5">
+                          <Star className="h-3.5 w-3.5" /> Rate Stay
+                        </Button>
+                      </Link>
+                    )}
+                    {b.status === 'accepted' && myReviews && myReviews.has(b.id) && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Star className="h-3.5 w-3.5 fill-primary text-primary" /> Reviewed
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
